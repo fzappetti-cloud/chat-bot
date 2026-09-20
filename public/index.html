@@ -1,0 +1,2215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GymFlow AI Assistant - Chat de Entrenamiento</title>
+    
+    <!-- Google Fonts for Premium Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Montserrat:wght@400;700;800&display=swap" rel="stylesheet">
+    
+    <!-- CSS Estilos Embebidos (Diseño Premium Dark/Neon Gym Aesthetic) -->
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(17, 24, 39, 0.7);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --primary-accent: #ff5e3a; /* Naranja atlético/fuego */
+            --primary-glow: rgba(255, 94, 58, 0.4);
+            --secondary-accent: #00f2fe; /* Celeste cian de tecnología */
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --user-bubble-bg: linear-gradient(135deg, #ff5e3a 0%, #ff2a5f 100%);
+            --ai-bubble-bg: rgba(31, 41, 55, 0.7);
+            --glow-green: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(rgba(11, 15, 25, 0.88), rgba(11, 15, 25, 0.88)), url('gym_backdrop.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Efectos de fondo dinámicos (Glow Blobs) */
+        .bg-glow-1 {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, var(--primary-glow) 0%, rgba(0,0,0,0) 70%);
+            top: -100px;
+            left: -100px;
+            z-index: 1;
+            filter: blur(40px);
+            pointer-events: none;
+        }
+
+        .bg-glow-2 {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(0, 242, 254, 0.2) 0%, rgba(0,0,0,0) 70%);
+            bottom: -150px;
+            right: -100px;
+            z-index: 1;
+            filter: blur(40px);
+            pointer-events: none;
+        }
+
+        /* Contenedor Principal (Glassmorphism Vertical Rectangular) */
+        .chat-container {
+            width: 95%;
+            max-width: 450px;
+            height: 96vh;
+            background: rgba(13, 20, 35, 0.88);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 3px solid rgba(75, 85, 99, 0.7);
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.05), 0 25px 65px rgba(0, 0, 0, 0.7);
+            z-index: 10;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            animation: metallic-glow 6s infinite ease-in-out;
+        }
+
+        @keyframes metallic-glow {
+            0%, 100% {
+                border-color: rgba(75, 85, 99, 0.7);
+                box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.05), 0 0 20px rgba(255, 94, 58, 0.08), 0 25px 65px rgba(0, 0, 0, 0.7);
+            }
+            50% {
+                border-color: rgba(220, 225, 235, 0.95);
+                box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.15), 0 0 35px rgba(0, 242, 254, 0.18), 0 25px 65px rgba(0, 0, 0, 0.7);
+            }
+        }
+
+        h1, h2, h3, h4, h5, h6, .chat-header h1, .chat-header span, .empty-state h3, .card-header span, .suggestion-btn {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        /* 1) Encabezado (Header) */
+        .chat-header {
+            padding: 12px 20px;
+            background: rgba(10, 15, 26, 0.45);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .avatar-container {
+            position: relative;
+            width: 48px;
+            height: 48px;
+        }
+
+        .avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-accent), var(--secondary-accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 20px;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(255, 94, 58, 0.3);
+        }
+
+        .status-dot {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 12px;
+            height: 12px;
+            background-color: var(--glow-green);
+            border: 2px solid #111827;
+            border-radius: 50%;
+            animation: pulse-green 2s infinite;
+        }
+
+        @keyframes pulse-green {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        .agent-details h1 {
+            font-size: 1.15rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .agent-details h1 span.tag {
+            font-size: 0.7rem;
+            background: rgba(255, 94, 58, 0.2);
+            color: var(--primary-accent);
+            padding: 2px 8px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 94, 58, 0.3);
+        }
+
+        .agent-details p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Configuración de la API Key */
+        .config-button {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 8px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .config-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .config-button.btn-danger {
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+
+        .config-button.btn-danger:hover {
+            background: rgba(239, 68, 68, 0.18);
+            color: #fca5a5;
+        }
+
+        /* Panel de Configuración Colapsable */
+        .config-panel {
+            background: rgba(10, 15, 26, 0.95);
+            border-bottom: 1px solid var(--border-color);
+            padding: 16px 24px;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .config-panel label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .config-input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .config-input {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: var(--text-main);
+            font-size: 0.85rem;
+        }
+
+        .config-save-btn {
+            background: var(--primary-accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .config-save-btn:hover {
+            opacity: 0.9;
+        }
+
+        /* 2) Caja de Conversación (Chat Box) */
+        .chat-messages {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            scroll-behavior: smooth;
+        }
+
+        /* Estilo personalizado de Scrollbar */
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        /* Burbujas de Mensaje */
+        .message-row {
+            display: flex;
+            width: 100%;
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message-row.user-row {
+            justify-content: flex-end;
+        }
+
+        .message-row.ai-row {
+            justify-content: flex-start;
+        }
+
+        .message-wrapper {
+            display: flex;
+            gap: 12px;
+            max-width: 75%;
+        }
+
+        .message-row.user-row .message-wrapper {
+            flex-direction: row-reverse;
+        }
+
+        .msg-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            flex-shrink: 0;
+            margin-top: 4px;
+        }
+
+        .user-row .msg-avatar {
+            background: var(--primary-accent);
+            color: white;
+            box-shadow: 0 0 10px rgba(255, 94, 58, 0.2);
+        }
+
+        .ai-row .msg-avatar {
+            background: linear-gradient(135deg, var(--primary-accent), var(--secondary-accent));
+            color: white;
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
+        }
+
+        .message-bubble {
+            padding: 14px 18px;
+            border-radius: 18px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            word-break: break-word;
+        }
+
+        .user-row .message-bubble {
+            background: linear-gradient(145deg, #ff7e5a 0%, #ff5e3a 45%, #d43b17 75%, #ff5e3a 100%);
+            color: #ffffff;
+            border-top-right-radius: 4px;
+            border-top: 1.5px solid rgba(255, 255, 255, 0.45);
+            border-left: 1.5px solid rgba(255, 255, 255, 0.2);
+            border-bottom: 2px solid rgba(0, 0, 0, 0.35);
+            border-right: 2px solid rgba(0, 0, 0, 0.35);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 6px 15px rgba(255, 94, 58, 0.35);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+        }
+
+        .ai-row .message-bubble {
+            background: linear-gradient(145deg, #2d3748 0%, #1a202c 50%, #0f121d 80%, #1a202c 100%);
+            color: var(--text-main);
+            border-top-left-radius: 4px;
+            border-top: 1.5px solid rgba(255, 255, 255, 0.2);
+            border-left: 1.5px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 2.5px solid rgba(0, 0, 0, 0.55);
+            border-right: 2.5px solid rgba(0, 0, 0, 0.55);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 6px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .message-bubble.welcome-bubble {
+            background: linear-gradient(135deg, rgba(255, 94, 58, 0.12) 0%, rgba(0, 242, 254, 0.06) 100%);
+            border: 1px solid rgba(255, 94, 58, 0.25);
+            box-shadow: 0 8px 32px rgba(255, 94, 58, 0.08);
+            font-size: 1.05rem;
+            line-height: 1.6;
+            padding: 18px 22px;
+        }
+        .message-bubble.welcome-bubble p {
+            margin-bottom: 12px;
+        }
+        .message-bubble.welcome-bubble p:last-child {
+            margin-bottom: 0;
+        }
+        .message-bubble.welcome-bubble strong {
+            color: #fff;
+            text-shadow: 0 0 8px rgba(255, 94, 58, 0.35);
+        }
+
+        /* Estilos dentro de las respuestas de IA (Markdown simplificado) */
+        .message-bubble p {
+            margin-bottom: 8px;
+        }
+        .message-bubble p:last-child {
+            margin-bottom: 0;
+        }
+        .message-bubble strong {
+            color: #fff;
+            font-weight: 600;
+        }
+        .message-bubble ul, .message-bubble ol {
+            margin-left: 20px;
+            margin-bottom: 8px;
+        }
+        .message-bubble li {
+            margin-bottom: 4px;
+        }
+
+        .message-time {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+            display: block;
+            text-align: right;
+        }
+
+        .ai-row .message-time {
+            text-align: left;
+        }
+
+        /* Indicador de carga (Pulsing Dots) */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 14px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--text-muted);
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
+        }
+
+        /* Mensaje de Bienvenida / Empty State */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            color: var(--text-muted);
+            padding: 20px 30px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .empty-state-icon {
+            width: 75px;
+            height: 75px;
+            background: radial-gradient(circle, rgba(255, 94, 58, 0.2) 0%, rgba(0, 242, 254, 0.05) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 18px;
+            border: 2px solid rgba(255, 94, 58, 0.4);
+            color: var(--primary-accent);
+            box-shadow: 0 0 20px rgba(255, 94, 58, 0.25), inset 0 0 10px rgba(0, 242, 254, 0.2);
+            animation: float-icon 4s ease-in-out infinite;
+        }
+
+        @keyframes float-icon {
+            0%, 100% {
+                transform: translateY(0) scale(1);
+            }
+            50% {
+                transform: translateY(-6px) scale(1.04);
+                box-shadow: 0 8px 25px rgba(255, 94, 58, 0.4), inset 0 0 15px rgba(0, 242, 254, 0.35);
+                color: #ffffff;
+            }
+        }
+
+        .empty-state h3 {
+            background: linear-gradient(135deg, #ffffff 10%, #d1d5db 40%, #ff5e3a 75%, #00f2fe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 12px;
+            font-size: 1.25rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .empty-state p {
+            max-width: 320px;
+            font-size: 0.85rem;
+            line-height: 1.45;
+            margin-bottom: 20px;
+            color: rgba(243, 244, 246, 0.7);
+        }
+
+        .suggestion-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .suggestion-btn:hover {
+            background: rgba(255, 94, 58, 0.15);
+            border-color: var(--primary-accent);
+            transform: translateY(-2px);
+        }
+
+        /* 3) Área de Entrada (Input Area) */
+        .chat-input-area {
+            padding: 10px 18px;
+            background: rgba(10, 15, 26, 0.6);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .input-form {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 4px 16px;
+            transition: all 0.2s ease;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: var(--primary-accent);
+            box-shadow: 0 0 10px rgba(255, 94, 58, 0.15);
+        }
+
+        .message-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-main);
+            padding: 12px 0;
+            font-size: 0.95rem;
+            resize: none;
+            height: 44px;
+            max-height: 120px;
+        }
+
+        .message-input::placeholder {
+            color: var(--text-muted);
+        }
+        .mic-button {
+            background: none;
+            border: none;
+            padding: 8px;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            border-radius: 50%;
+            margin-left: 8px;
+        }
+        .mic-button:hover {
+            color: var(--primary-accent);
+            transform: scale(1.1);
+        }
+        .mic-button.listening {
+            color: #ef4444;
+            animation: pulse-red 1.2s infinite;
+        }
+        @keyframes pulse-red {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .send-button {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: var(--primary-accent);
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 10px rgba(255, 94, 58, 0.25);
+        }
+
+        .send-button:hover {
+            transform: scale(1.05);
+            background: #ff7252;
+            box-shadow: 0 6px 15px rgba(255, 94, 58, 0.35);
+        }
+
+        .send-button:active {
+            transform: scale(0.95);
+        }
+
+        .send-button svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+            transform: rotate(45deg);
+            margin-left: -2px;
+            margin-top: 2px;
+        }
+
+        .send-button:disabled {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* Disclaimer de ayuda */
+        .disclaimer {
+            text-align: center;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 10px;
+        }
+
+        /* Estilos de Tarjetas de Function Calling */
+        .interactive-card {
+            background: rgba(30, 41, 59, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            margin: 10px 0;
+            width: 100%;
+            max-width: 400px;
+            align-self: flex-start;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            animation: slideInUp 0.3s ease-out;
+        }
+        
+        .interactive-card img {
+            cursor: zoom-in;
+            transition: transform 0.2s ease, filter 0.2s ease;
+        }
+        .interactive-card img:hover {
+            filter: brightness(1.1);
+            transform: scale(1.015);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            color: white;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 8px;
+        }
+
+        .card-header svg {
+            width: 18px;
+            height: 18px;
+            color: var(--primary-accent);
+        }
+
+        .card-field {
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .card-field strong {
+            color: white;
+        }
+
+        .card-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .badge-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .badge-success {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .badge-warning {
+            background: rgba(234, 179, 8, 0.2);
+            color: #eab308;
+            border: 1px solid rgba(234, 179, 8, 0.3);
+        }
+
+        .card-button {
+            display: block;
+            width: 100%;
+            padding: 8px;
+            background: var(--primary-accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .card-button:hover {
+            background: #ff7252;
+            transform: translateY(-1px);
+        }
+
+        .card-button.mp-btn {
+            background: #009ee3;
+            box-shadow: 0 4px 10px rgba(0, 158, 227, 0.2);
+        }
+        
+        .card-button.mp-btn:hover {
+            background: #008cd2;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Fondos con degradado brillante -->
+    <div class="bg-glow-1"></div>
+    <div class="bg-glow-2"></div>
+
+    <!-- Contenedor Principal del Chat -->
+    <div class="chat-container">
+        
+        <!-- 1) Encabezado -->
+        <header class="chat-header">
+            <div class="header-info">
+                <div class="avatar-container">
+                    <div class="avatar" style="overflow: hidden; background: transparent;">
+                        <img src="gymflow_logo.png" alt="GymFlow Logo" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <div class="status-dot"></div>
+                </div>
+                <div class="agent-details">
+                    <h1>GYMFLOW</h1>
+                    <p>Canal de Consultas y Demostración Operativa</p>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <button class="config-button btn-danger" id="clearChatBtn" title="Borrar Historial">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    Limpiar Chat
+                </button>
+            </div>
+        </header>
+
+        <!-- 2) Caja de Conversación -->
+        <main class="chat-messages" id="chatMessages">
+            
+            <!-- Vista inicial vacía (Empty State) -->
+            <div class="empty-state" id="emptyState">
+                <div class="empty-state-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                </div>
+                <h3>Canal de Consultas GYMFLOW</h3>
+                <p>Este espacio está diseñado para resolver dudas operativas, consultar capacidades técnicas e informarse acerca de las aptitudes y módulos de gestión integrados en la plataforma. Inicie la conversación escribiendo su pregunta a continuación.</p>
+            </div>
+
+        </main>
+
+        <!-- 3) Área de Entrada / Control de Mensajes -->
+        <footer class="chat-input-area">
+            <form class="input-form" id="chatForm">
+                <div class="input-wrapper">
+                    <input type="text" id="userInput" class="message-input" autocomplete="off" placeholder="Escribe un mensaje para GymFlow AI...">
+                    <button type="button" id="micBtn" class="mic-button" title="Hablar (Dictar mensaje)">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/>
+                        </svg>
+                    </button>
+                </div>
+                <button type="submit" id="sendBtn" class="send-button" title="Enviar Mensaje">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                    </svg>
+                </button>
+            </form>
+            <div class="disclaimer">
+                Desarrollado para GymFlow - Ejecutado en local de forma segura.
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- JS Embebido para Lógica del Chat e Integración con Gemini -->
+    <script>
+        // --- 1. CONFIGURACIÓN INICIAL & API KEY ---
+        // La API Key de Groq vive solo en el servidor (variable de entorno GROQ_API_KEY).
+        // El navegador nunca la ve: llama a /api/chat y el servidor agrega la clave.
+
+        // Historial de mensajes en memoria y persistencia
+        let chatHistory = [];
+
+        // Elementos del DOM
+        const chatMessages = document.getElementById('chatMessages');
+        const chatForm = document.getElementById('chatForm');
+        const userInput = document.getElementById('userInput');
+        const micBtn = document.getElementById('micBtn');
+        const sendBtn = document.getElementById('sendBtn');
+        const emptyState = document.getElementById('emptyState');
+        const clearChatBtn = document.getElementById('clearChatBtn');
+
+        // --- Dictado de Voz (Speech Recognition) ---
+        let recognition = null;
+        let isListening = false;
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = 'es-AR';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.onstart = () => {
+                isListening = true;
+                micBtn.classList.add('listening');
+                micBtn.title = "Escuchando... Haz clic para detener";
+                userInput.placeholder = "Escuchando tu voz...";
+            };
+
+            recognition.onend = () => {
+                isListening = false;
+                micBtn.classList.remove('listening');
+                micBtn.title = "Hablar (Dictar mensaje)";
+                userInput.placeholder = "Escribe un mensaje para GymFlow AI...";
+            };
+
+            recognition.onerror = (e) => {
+                console.error("Error en Speech Recognition:", e.error);
+                isListening = false;
+                micBtn.classList.remove('listening');
+                if (e.error === 'not-allowed') {
+                    alert("Por favor, habilita los permisos del micrófono en tu navegador.");
+                }
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                userInput.value = transcript;
+                userInput.focus();
+            };
+
+            micBtn.addEventListener('click', () => {
+                if (isListening) {
+                    recognition.stop();
+                } else {
+                    recognition.start();
+                }
+            });
+        } else {
+            // Ocultar botón si el navegador no lo soporta (ej. Firefox de escritorio sin flag)
+            micBtn.style.display = 'none';
+            console.warn("Este navegador no soporta la API de SpeechRecognition.");
+        }
+
+        // Borrar Historial de Chat
+        clearChatBtn.addEventListener('click', () => {
+            if (confirm('¿Estás seguro de que deseas borrar todo el historial de conversación?')) {
+                chatHistory = [];
+                localStorage.removeItem('gymflow_chat_history');
+                
+                // Limpiar DOM y recargar el estado inicial sin destruir el Empty State
+                chatMessages.querySelectorAll('.message-row, .interactive-card').forEach(el => el.remove());
+                loadChatHistory();
+            }
+        });
+
+        // Guardar historial en localStorage
+        function saveChatHistory() {
+            localStorage.setItem('gymflow_chat_history', JSON.stringify(chatHistory));
+        }
+
+        function loadChatHistory() {
+            const savedHistory = localStorage.getItem('gymflow_chat_history');
+            if (savedHistory) {
+                try {
+                    chatHistory = JSON.parse(savedHistory);
+                    
+                    // Si detectamos que es el historial dummy viejo (con las marcas de tiempo iniciales fakes), lo limpiamos
+                    if (chatHistory.some(msg => msg.time === "08:29" || msg.time === "08:30" || msg.time === "08:31" || msg.time === "08:32")) {
+                        chatHistory = [];
+                        localStorage.removeItem('gymflow_chat_history');
+                    }
+                } catch (e) {
+                    console.error("Error al cargar el historial persistente:", e);
+                    chatHistory = [];
+                }
+            }
+
+            // Limpiar DOM de mensajes anteriores antes de pintar
+            chatMessages.querySelectorAll('.message-row, .interactive-card').forEach(el => el.remove());
+
+            // Pintar visualmente la conversación precargada en el DOM si existe
+            if (chatHistory.length > 0) {
+                if (emptyState) emptyState.style.display = 'none';
+                chatHistory.forEach(msg => {
+                    if (msg.isFunctionCall) {
+                        return; // Omitir dibujo de burbuja para datos de llamadas internas
+                    }
+                    if (msg.isFunctionResponse) {
+                        // Dibujar la tarjeta interactiva asociada a la respuesta de función
+                        try {
+                            const result = JSON.parse(msg.text);
+                            dibujarTarjetaEnChat(msg.name, {}, result);
+                        } catch (e) {
+                            console.error("Error al renderizar tarjeta histórica:", e);
+                        }
+                        return;
+                    }
+                    addMessageToChat(msg.text, msg.sender, msg.time, false);
+                });
+            } else {
+                // Si está vacío, mostrar la pantalla de presentación (Empty State)
+                if (emptyState) {
+                    emptyState.style.display = 'flex';
+                }
+            }
+        }
+
+        // --- 2. LOGICA DEL CHAT ---
+        
+        // Evento Submit del Formulario
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            handleUserMessage();
+        });
+
+        // Enviar mensajes desde botones de sugerencias rápidas
+        function sendSuggestion(text) {
+            userInput.value = text;
+            handleUserMessage();
+        }
+
+        // Manejar el mensaje enviado por el usuario
+        async function handleUserMessage() {
+            const messageText = userInput.value.trim();
+            if (!messageText) return;
+
+            // Ocultar empty state si es la primera interacción
+            if (emptyState) {
+                emptyState.style.display = 'none';
+            }
+
+            // Deshabilitar entrada mientras responde la IA
+            setLoadingState(true);
+
+            // Agregar mensaje del usuario en el chat (se guarda en historial)
+            addMessageToChat(messageText, 'user');
+            
+            // Limpiar input
+            userInput.value = '';
+
+            // Verificar si es la primera interacción y es un saludo inicial para interceptar localmente
+            const userMessagesCount = chatHistory.filter(m => m.sender === 'user').length;
+            const esSaludoInicial = (text) => {
+                const clean = text.toLowerCase().trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?¡¿]/g,"");
+                const saludos = ["hola", "buenas", "buen dia", "buenos dias", "hola fito", "hola me gustaria conocer la plataforma", "comenzar", "start"];
+                return saludos.includes(clean) || clean === "hola me gustaría conocer la plataforma";
+            };
+            
+            if (userMessagesCount === 1 && esSaludoInicial(messageText)) {
+                const loadingRow = addLoadingIndicator();
+                setTimeout(() => {
+                    loadingRow.remove();
+                    const welcomeReply = `¡Hola! Te doy la bienvenida a **GYMFLOW** 🚀.\n\nSomos la plataforma líder en gestión inteligente y automatización para gimnasios y centros de fitness. Optimizamos tu control de caja, bloqueamos la morosidad de forma automática y conectamos con tus socios mediante alertas de WhatsApp.\n\n¿Qué aspecto de la plataforma te gustaría simular en tiempo real hoy?: [WELCOME_ACTION_BUTTONS]`;
+                    addMessageToChat(welcomeReply, 'ai');
+                    setLoadingState(false);
+                }, 500);
+                return;
+            }
+
+            // Crear fila y burbuja del bot con indicador de "escribiendo..."
+            const loadingRow = addLoadingIndicator();
+
+            try {
+                // Llamada a la API de Groq pasándole el historial de la conversación
+                let responseText = await callGroqAPI(messageText);
+                
+                // --- PARSER DE RESPUESTA EN FORMATO TEXTO DE FUNCIÓN (FALLBACK) ---
+                if (responseText && responseText.includes('<function')) {
+                    const match = responseText.match(/<function[=:][\s]*([a-zA-Z0-9_]+)[\s,>]*([\s\S]*?)\s*<\/function>/);
+                    if (match) {
+                        const name = match[1];
+                        let argsString = match[2].trim();
+                        if (argsString.endsWith('/')) {
+                            argsString = argsString.slice(0, -1).trim();
+                        }
+                        try {
+                            const args = JSON.parse(argsString);
+                            const cleanName = name.replace(/^.*:/, "");
+                            
+                            // Remover la etiqueta del texto limpiando cualquier variante
+                            responseText = responseText.replace(/<function[=:][\s\S]*?<\/function>/g, "").trim();
+
+                            // Ejecutar localmente y dibujar tarjeta
+                            const result = await ejecutarFuncionLocal(cleanName, args);
+                            dibujarTarjetaEnChat(cleanName, args, result);
+                            
+                            // Guardar en el historial la llamada y la respuesta
+                            const toolCallId = "call_" + Math.random().toString(36).substr(2, 9);
+                            chatHistory.push({
+                                sender: 'ai',
+                                text: `[Llamada a función: ${name}]`,
+                                isFunctionCall: true,
+                                toolCallId: toolCallId,
+                                toolCalls: [{
+                                    id: toolCallId,
+                                    type: "function",
+                                    function: { name: name, arguments: JSON.stringify(args) }
+                                }]
+                            });
+                            chatHistory.push({
+                                sender: 'function',
+                                name: name,
+                                cleanName: cleanName,
+                                text: JSON.stringify(result),
+                                isFunctionResponse: true,
+                                toolCallId: toolCallId,
+                                response: result
+                            });
+                            saveChatHistory();
+                        } catch (e) {
+                            console.error("Error al procesar llamada a función embebida en texto:", e);
+                        }
+                    }
+                }
+                
+                // Remover el indicador de carga
+                loadingRow.remove();
+                
+                // Agregar respuesta en el chat (se guarda en historial)
+                addMessageToChat(responseText, 'ai');
+            } catch (error) {
+                console.error('Error al obtener respuesta:', error);
+                loadingRow.remove();
+                
+                let friendlyMessage = "⚠️ **¡Upps! Parece que hubo un problema de conexión.**\n\nNo pude conectarme con el servidor de la inteligencia artificial. Por favor, asegúrate de que el servidor proxy local de Node esté corriendo en el puerto 3999.";
+                
+                const errStr = (error.message || "").toLowerCase();
+                if (errStr.includes("429") || errStr.includes("rate limit") || errStr.includes("exceeded")) {
+                    friendlyMessage = "⚠️ **Límite de Consultas Excedido (Cuota Agotada)**\n\nEl servidor de Groq ha alcanzado su límite de peticiones gratuitas por minuto (Rate Limit 429) o se han agotado tus tokens disponibles. Por favor, espera un par de minutos e inténtalo de nuevo. ⏳";
+                } else if (errStr.includes("400") || errStr.includes("bad request") || errStr.includes("adjust your prompt") || errStr.includes("tool_use_failed")) {
+                    friendlyMessage = "⚠️ **Error de Procesamiento en la API (HTTP 400)**\n\nEl servidor de la IA no pudo procesar tu mensaje debido a un problema temporal con el formato de las herramientas (Function Calling). Por favor, intenta escribir tu consulta de forma más simple o haz clic en **Limpiar Chat** para refrescar el historial. 🔄";
+                } else if (errStr.includes("api key") || errStr.includes("auth") || errStr.includes("401") || errStr.includes("unauthorized")) {
+                    friendlyMessage = "⚠️ **Error de Autenticación**\n\nLa API Key de Groq configurada parece ser inválida o ha sido revocada. Por favor, verifica la configuración o vuelve a cargar la página para introducir una clave válida.";
+                } else if (errStr.includes("node.js") || errStr.includes("3999") || errStr.includes("proxy") || errStr.includes("failed to fetch")) {
+                    friendlyMessage = "⚠️ **Proxy Local Desconectado**\n\nNo se pudo establecer comunicación con el proxy local de Node.js en el puerto 3999. Por favor, verifica en tu terminal que el proceso `node local_proxy.js` siga activo y corriendo.";
+                } else if (error.message) {
+                    friendlyMessage = `⚠️ **Inconveniente técnico:**\n\n${error.message}`;
+                }
+                
+                addMessageToChat(friendlyMessage, 'ai', null, false);
+            } finally {
+                setLoadingState(false);
+            }
+        }
+
+        // Bloquear / Desbloquear entrada
+        function setLoadingState(isLoading) {
+            userInput.disabled = isLoading;
+            sendBtn.disabled = isLoading;
+            if (!isLoading) {
+                userInput.focus();
+            }
+        }
+
+        // Ejecutar simulación rápida de herramientas en un solo turno (One-Turn Execution)
+        async function ejecutarDemoRapida(tipo) {
+            let userPromptText = "";
+            let cleanName = "";
+            let args = {};
+            let result = {};
+            let replyText = "";
+            
+            if (tipo === 'proposito') {
+                userPromptText = "Mostrar esquema de Arquitectura y Propósito de GYMFLOW";
+                cleanName = "mostrarEsquemaComercial";
+                args = { tema: "proposito" };
+                result = await ejecutarFuncionLocal(cleanName, args);
+                replyText = "En este esquema gráfico de arriba podés ver cómo estructuramos la plataforma en GYMFLOW. Con esta arquitectura multitenant, cada sucursal de tu gimnasio opera con su base de datos totalmente aislada, garantizando privacidad y control global sin riesgo de filtraciones. ¿Cómo manejan las sucursales en tu negocio actualmente? 🌐";
+            } 
+            else if (tipo === 'beneficios') {
+                userPromptText = "Mostrar esquema de Beneficios y Automatización de Caja";
+                cleanName = "mostrarEsquemaComercial";
+                args = { tema: "beneficios" };
+                result = await ejecutarFuncionLocal(cleanName, args);
+                replyText = "Con GYMFLOW podés simplificar el día a día en tres pilares clave: cobros rápidos en mostrador en menos de 3 segundos, bloqueo automático de morosos y alertas automáticas por WhatsApp para inactivos. La idea es liberar tiempo administrativo para que te enfoques en el crecimiento. ¿Qué tarea administrativa te consume más tiempo hoy? 📈";
+            }
+            else if (tipo === 'dolores') {
+                userPromptText = "Mostrar esquema de Dolores Operativos y Conciliación Mercado Pago";
+                cleanName = "mostrarEsquemaComercial";
+                args = { tema: "dolores" };
+                result = await ejecutarFuncionLocal(cleanName, args);
+                replyText = "En el gráfico detallamos los dolores más comunes de un centro deportivo y cómo los resolvemos (como el registro manual lento o la conciliación de caja desordenada). GYMFLOW unifica todo tu flujo financiero y automatiza los recordatorios para reducir el abandono silencioso. ¿Cuál de estos dolores sentís que te afecta más hoy? 🏋️";
+            }
+            else if (tipo === 'whatsapp') {
+                userPromptText = "Mostrar secuencia automatizada de WhatsApp para retención de socios";
+                cleanName = "mostrarEsquemaComercial";
+                args = { tema: "whatsapp" };
+                result = await ejecutarFuncionLocal(cleanName, args);
+                replyText = "Esta es la secuencia automatizada de retención. El sistema detecta cuando un socio cumple 10 días de inactividad física y le envía un aviso amistoso por WhatsApp con un enlace directo de reserva. Así logramos recuperar alumnos de forma proactiva. ¿Qué porcentaje de ausentismo solés tener en tu gimnasio? 📲";
+            }
+            else if (tipo === 'rutinas') {
+                userPromptText = "Mostrar esquema de diseño y seguimiento de rutinas con avances del alumno";
+                cleanName = "mostrarEsquemaComercial";
+                args = { tema: "rutinas" };
+                result = await ejecutarFuncionLocal(cleanName, args);
+                replyText = "Con este ecosistema, los profes arman rutinas inteligentes en 3 clics desde su panel, las cuales se adaptan automáticamente a las máquinas disponibles en la sede. Además, los alumnos registran sus series y pesos directo en su celular para ver sus avances históricos en tiempo real. ¿Cómo hacen el seguimiento de rutinas hoy? 💪";
+            }
+            else if (tipo === 'clases') {
+                userPromptText = "Mostrar esquema de programación de clases grupales según objetivos";
+                cleanName = "mostrarEsquemaComercial";
+                args = { tema: "clases" };
+                result = await ejecutarFuncionLocal(cleanName, args);
+                replyText = "Acá podés ver el flujo para clases grupales. Los alumnos reservan sus cupos desde la app según los objetivos (como Cardio, HIIT o Fuerza) y al llegar a la sede se valida su cuota y aforo al instante en recepción, evitando salones colapsados. ¿Qué tipo de clases grupales ofrecen actualmente? 📅";
+            }
+            else if (tipo === 'pagos') {
+                userPromptText = "Mostrar esquema de automatización de registro de pagos (mostrador y digital)";
+                cleanName = "mostrarEsquemaComercial";
+                args = { tema: "pagos" };
+                result = await ejecutarFuncionLocal(cleanName, args);
+                replyText = "Este esquema muestra nuestra integración de cobros. Podés registrar pagos en efectivo o tarjetas en el mostrador al instante, o cobrar a distancia enviando un link de Mercado Pago que concilia de forma automática mediante webhooks, habilitando el acceso del socio al instante. ¿Qué medios de pago usan hoy? 💸";
+            }
+            else if (tipo === 'contabilidad') {
+                userPromptText = "Mostrar esquema de automatización contable y análisis predictivo de negocio";
+                cleanName = "mostrarEsquemaComercial";
+                args = { tema: "contabilidad" };
+                result = await ejecutarFuncionLocal(cleanName, args);
+                replyText = "Este es el flujo contable inteligente de GYMFLOW. Automatiza el registro de todos tus ingresos y egresos, y te brinda reportes con análisis estadístico predictivo para proyectar si el negocio está listo para expandirse o si requiere ajustes de mantenimiento. ¿Cómo llevan el control contable actualmente? 📊";
+            }
+            else if (tipo === 'cotizar') {
+                userPromptText = "Calcular cotización automática para mi gimnasio (150 alumnos, 1 sede)";
+                cleanName = "calcularCotizacionPlan";
+                args = { cantidad_alumnos: 150, cantidad_sucursales: 1, incluye_whatsapp: true };
+                result = await ejecutarFuncionLocal(cleanName, args);
+                replyText = "Ahí calculé el presupuesto estimado en base a 150 alumnos y 1 sucursal. Los números del abono mensual y tu ahorro con el plan anual están detallados en la tarjeta de arriba. 💰\n\nSi te cierra el presupuesto, contame y coordinamos una demo rápida de 15 minutos en vivo para ver la plataforma por dentro. ¿Qué te parece? 🚀";
+            } 
+            else if (tipo === 'agendar') {
+                userPromptText = "Agendar demostración en vivo de GYMFLOW (Carlos, carlos@gym.com, Lunes 10 hs)";
+                cleanName = "agendarDemostracionEnVivo";
+                args = { nombre_contacto: "Carlos", email: "carlos@gym.com", dia_horario: "Lunes 10:00 hs" };
+                result = await ejecutarFuncionLocal(cleanName, args);
+                replyText = "¡Perfecto! Ya tienes agendada la demostración en vivo de GYMFLOW. He generado el enlace de Google Meet en la tarjeta de arriba. 🚀 Te enviaremos un recordatorio por correo electrónico.";
+            } 
+            else if (tipo === 'dossier') {
+                userPromptText = "Solicitar dossier técnico de facturación y finanzas";
+                cleanName = "enviarFichaTecnicaSaaS";
+                args = { email: "ventas@gimnasio.com", modulo_interes: "Finanzas y Caja" };
+                result = await ejecutarFuncionLocal(cleanName, args);
+                replyText = "He preparado el dossier técnico comercial solicitado. Puedes presionar el botón de descarga en la tarjeta anterior para acceder al PDF de inmediato. 📄";
+            }
+            
+            // Ocultar empty state si es la primera interacción
+            if (emptyState) {
+                emptyState.style.display = 'none';
+            }
+
+            // Agregar mensaje del usuario en el chat (se guarda en historial)
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            addMessageToChat(userPromptText, 'user', time, true);
+            
+            // Crear fila del bot con indicador de carga para dar realismo
+            const loadingRow = addLoadingIndicator();
+            await new Promise(resolve => setTimeout(resolve, 850));
+            loadingRow.remove();
+            
+            // Dibujar la tarjeta interactiva de la función
+            dibujarTarjetaEnChat(cleanName, args, result);
+            
+            // Registrar los parts virtuales de la llamada y respuesta en el historial para mantener coherencia con Gemini
+            chatHistory.push({
+                sender: 'ai',
+                text: `[Llamada a función: ${cleanName}]`,
+                isFunctionCall: true,
+                parts: [{ functionCall: { name: cleanName, args: args } }]
+            });
+            chatHistory.push({
+                sender: 'function',
+                name: cleanName,
+                cleanName: cleanName,
+                text: JSON.stringify(result),
+                isFunctionResponse: true,
+                response: result
+            });
+            
+            // Agregar respuesta textual de Fito
+            addMessageToChat(replyText, 'ai', time, true);
+            
+            saveChatHistory();
+        }
+
+        // Agregar Burbuja al Chat
+        function addMessageToChat(text, sender, time = null, save = true) {
+            const timeString = time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            let contentText = String(text || '');
+            let showWelcomeButtons = false;
+            
+            if (contentText && contentText.includes('[WELCOME_ACTION_BUTTONS]')) {
+                showWelcomeButtons = true;
+                contentText = contentText.replace('[WELCOME_ACTION_BUTTONS]', '');
+            }
+            
+            const row = document.createElement('div');
+            row.classList.add('message-row', `${sender}-row`);
+
+            const wrapper = document.createElement('div');
+            wrapper.classList.add('message-wrapper');
+
+            // Avatar
+            const avatar = document.createElement('div');
+            avatar.classList.add('msg-avatar');
+            avatar.style.overflow = 'hidden';
+            if (sender === 'ai') {
+                const img = document.createElement('img');
+                img.src = 'gymflow_logo.png';
+                img.alt = 'Fito';
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
+                avatar.appendChild(img);
+            } else {
+                avatar.innerText = 'U';
+            }
+
+            // Burbuja
+            const bubble = document.createElement('div');
+            bubble.classList.add('message-bubble');
+            
+            if (sender === 'ai') {
+                bubble.innerHTML = parseMarkdown(contentText);
+                if (showWelcomeButtons) {
+                    const btnContainer = document.createElement('div');
+                    btnContainer.style.display = 'flex';
+                    btnContainer.style.flexWrap = 'wrap';
+                    btnContainer.style.gap = '8px';
+                    btnContainer.style.marginTop = '12px';
+                    btnContainer.innerHTML = `
+                        <button class="suggestion-btn" onclick="ejecutarDemoRapida('proposito')" style="background: rgba(255, 94, 58, 0.1); border: 1px solid var(--primary-accent); padding: 8px 12px; border-radius: 20px; color: #fff; cursor: pointer; transition: all 0.2s;">🌐 Ver Arquitectura Multitenant</button>
+                        <button class="suggestion-btn" onclick="ejecutarDemoRapida('beneficios')" style="background: rgba(255, 94, 58, 0.1); border: 1px solid var(--primary-accent); padding: 8px 12px; border-radius: 20px; color: #fff; cursor: pointer; transition: all 0.2s;">🚀 Beneficios de Automatización</button>
+                        <button class="suggestion-btn" onclick="ejecutarDemoRapida('dolores')" style="background: rgba(255, 94, 58, 0.1); border: 1px solid var(--primary-accent); padding: 8px 12px; border-radius: 20px; color: #fff; cursor: pointer; transition: all 0.2s;">💸 Conciliación y Dolores</button>
+                        <button class="suggestion-btn" onclick="ejecutarDemoRapida('whatsapp')" style="background: rgba(255, 94, 58, 0.1); border: 1px solid var(--primary-accent); padding: 8px 12px; border-radius: 20px; color: #fff; cursor: pointer; transition: all 0.2s;">📲 Secuencia WhatsApp</button>
+                        <button class="suggestion-btn" onclick="ejecutarDemoRapida('rutinas')" style="background: rgba(255, 94, 58, 0.1); border: 1px solid var(--primary-accent); padding: 8px 12px; border-radius: 20px; color: #fff; cursor: pointer; transition: all 0.2s;">💪 Secuencia Rutinas</button>
+                        <button class="suggestion-btn" onclick="ejecutarDemoRapida('clases')" style="background: rgba(255, 94, 58, 0.1); border: 1px solid var(--primary-accent); padding: 8px 12px; border-radius: 20px; color: #fff; cursor: pointer; transition: all 0.2s;">📅 Secuencia Clases</button>
+                        <button class="suggestion-btn" onclick="ejecutarDemoRapida('pagos')" style="background: rgba(255, 94, 58, 0.1); border: 1px solid var(--primary-accent); padding: 8px 12px; border-radius: 20px; color: #fff; cursor: pointer; transition: all 0.2s;">💸 Secuencia Pagos</button>
+                        <button class="suggestion-btn" onclick="ejecutarDemoRapida('contabilidad')" style="background: rgba(255, 94, 58, 0.1); border: 1px solid var(--primary-accent); padding: 8px 12px; border-radius: 20px; color: #fff; cursor: pointer; transition: all 0.2s;">📊 Inteligencia Contable</button>
+                        <button class="suggestion-btn" onclick="ejecutarDemoRapida('cotizar')" style="background: rgba(255, 94, 58, 0.1); border: 1px solid var(--primary-accent); padding: 8px 12px; border-radius: 20px; color: #fff; cursor: pointer; transition: all 0.2s;">💰 Calcular Cotización Plan</button>
+                        <button class="suggestion-btn" onclick="ejecutarDemoRapida('dossier')" style="background: rgba(255, 94, 58, 0.1); border: 1px solid var(--primary-accent); padding: 8px 12px; border-radius: 20px; color: #fff; cursor: pointer; transition: all 0.2s;">📄 Solicitar Dossier PDF</button>
+                    `;
+                    bubble.appendChild(btnContainer);
+                }
+            } else {
+                bubble.textContent = contentText;
+            }
+
+            // Timestamp
+            const timeStamp = document.createElement('span');
+            timeStamp.classList.add('message-time');
+            timeStamp.textContent = timeString;
+
+            bubble.appendChild(timeStamp);
+            wrapper.appendChild(avatar);
+            wrapper.appendChild(bubble);
+            row.appendChild(wrapper);
+            
+            chatMessages.appendChild(row);
+            
+            // Guardar en memoria y localStorage si corresponde
+            if (save) {
+                chatHistory.push({ text, sender, time: timeString });
+                saveChatHistory();
+            }
+
+            scrollToBottom();
+        }
+
+        // Crear indicador de carga "Typing..."
+        function addLoadingIndicator() {
+            const row = document.createElement('div');
+            row.classList.add('message-row', 'ai-row');
+
+            const wrapper = document.createElement('div');
+            wrapper.classList.add('message-wrapper');
+
+            const avatar = document.createElement('div');
+            avatar.classList.add('msg-avatar');
+            avatar.style.overflow = 'hidden';
+            const img = document.createElement('img');
+            img.src = 'gymflow_logo.png';
+            img.alt = 'Fito';
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.objectFit = 'cover';
+            avatar.appendChild(img);
+
+            const bubble = document.createElement('div');
+            bubble.classList.add('message-bubble');
+            
+            const typingIndicator = document.createElement('div');
+            typingIndicator.classList.add('typing-indicator');
+            
+            for (let i = 0; i < 3; i++) {
+                const dot = document.createElement('div');
+                dot.classList.add('typing-dot');
+                typingIndicator.appendChild(dot);
+            }
+
+            bubble.appendChild(typingIndicator);
+            wrapper.appendChild(avatar);
+            wrapper.appendChild(bubble);
+            row.appendChild(wrapper);
+            
+            chatMessages.appendChild(row);
+            scrollToBottom();
+            
+            return row;
+        }
+
+        // Hacer scroll hasta el fondo del contenedor
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // --- EJECUCIÓN LOCAL DE FUNCIONES MOCK (FUNCTION CALLING - ROL REPRESENTANTE COMERCIAL) ---
+        async function ejecutarFuncionLocal(name, args) {
+            console.log(`[GYMFLOW Sales] Ejecutando acción comercial: ${name}`, args);
+            
+            if (name === "mostrarEsquemaComercial") {
+                const tema = args.tema || "proposito";
+                if (tema === "proposito") {
+                    return {
+                        imagen: "arquitectura_multitenant.jpg",
+                        titulo: "Esquema de Operación Multitenant - GYMFLOW"
+                    };
+                } else if (tema === "beneficios") {
+                    return {
+                        imagen: "gym1.jpg",
+                        titulo: "Esquema de Automatización y Cobros - GYMFLOW"
+                    };
+                } else if (tema === "dolores") {
+                    return {
+                        imagen: "gym2.jpg",
+                        titulo: "Esquema de Unificación Financiera y Caja - GYMFLOW"
+                    };
+                } else if (tema === "bicicletas") {
+                    return {
+                        imagen: "gym3.jpg",
+                        titulo: "Esquema de Rutinas e Inventario Biomecánico - GYMFLOW"
+                    };
+                } else if (tema === "whatsapp") {
+                    return {
+                        imagen: "secuencia_whatsapp_retencion.jpg",
+                        titulo: "Secuencia de Retención Automatizada por WhatsApp - GYMFLOW"
+                    };
+                } else if (tema === "rutinas") {
+                    return {
+                        imagen: "rutinas_seguimiento.jpg",
+                        titulo: "Diseño y Seguimiento de Rutinas - GYMFLOW"
+                    };
+                } else if (tema === "clases") {
+                    return {
+                        imagen: "clases_grupales.jpg",
+                        titulo: "Diseño y Programación de Clases Grupales - GYMFLOW"
+                    };
+                } else if (tema === "pagos") {
+                    return {
+                        imagen: "registro_pagos_automatizado.jpg",
+                        titulo: "Automatización de Registro de Pagos - GYMFLOW"
+                    };
+                } else if (tema === "contabilidad") {
+                    return {
+                        imagen: "contabilidad_predictiva.jpg",
+                        titulo: "Inteligencia Contable y Análisis Predictivo - GYMFLOW"
+                    };
+                }
+            }
+
+            if (name === "agendarDemostracionEnVivo") {
+                const nombre = args.nombre_contacto || "Interesado";
+                const email = args.email || "correo@ejemplo.com";
+                const horario = args.dia_horario || "A coordinar";
+                return {
+                    ticket_reunion: "GF-DEMO-" + Math.floor(1000 + Math.random() * 9000),
+                    nombre_prospecto: nombre,
+                    email_prospecto: email,
+                    consultor: "Fito (Asesor GYMFLOW)",
+                    fecha_reunion: horario,
+                    meet_link: "https://meet.google.com/mock-gymflow-demo",
+                    estado: "Agendado con éxito"
+                };
+            }
+            
+            if (name === "calcularCotizacionPlan") {
+                const alumnos = parseInt(args.cantidad_alumnos) || 100;
+                const sucursales = parseInt(args.cantidad_sucursales) || 1;
+                const whatsapp = args.incluye_whatsapp !== false;
+                
+                let planNombre = "Plan Fit Starter (Base)";
+                let precioBase = 15000;
+                let recargoSucursales = 0;
+                let recargoWhatsApp = whatsapp ? 3000 : 0;
+                
+                // Aplicar lógica condicionada por umbrales (clientes >= 150 y sucursales >= 2)
+                if (alumnos >= 150 || sucursales >= 2) {
+                    planNombre = "Plan Fit Pro (Escalado)";
+                    precioBase = 28000; // Valor superior
+                    if (sucursales >= 2) {
+                        recargoSucursales = (sucursales - 1) * 12000; // Recargo sede si >= 2
+                    } else {
+                        recargoSucursales = 0;
+                    }
+                } else {
+                    // Por debajo de los umbrales
+                    precioBase = 15000; // Valor inferior
+                    if (sucursales > 1) {
+                        recargoSucursales = (sucursales - 1) * 8000;
+                    }
+                }
+                
+                const totalMensual = precioBase + recargoSucursales + recargoWhatsApp;
+                const ahorroAnual = Math.floor(totalMensual * 12 * 0.15); // 15% de ahorro en pago anual
+                
+                return {
+                    plan_nombre: planNombre,
+                    alumnos_limite: alumnos,
+                    sucursales_cantidad: sucursales,
+                    whatsapp_incluido: whatsapp ? "Sí" : "No",
+                    precio_mensual: totalMensual,
+                    ahorro_anual_pago: ahorroAnual
+                };
+            }
+            
+            if (name === "enviarFichaTecnicaSaaS") {
+                const email = args.email || "correo@ejemplo.com";
+                const modulo = args.modulo_interes || "General";
+                return {
+                    archivo_nombre: `gymflow_dossier_${modulo.toLowerCase().replace(/ /g, "_")}.pdf`,
+                    destinatario: email,
+                    peso_archivo: "2.4 MB",
+                    enviado: true,
+                    mensaje: "Dossier comercial e instructivo técnico enviado con éxito a la casilla de correo del prospecto.",
+                    download_link: "https://gymflow.com.ar/downloads/ficha_tecnica_comercial.pdf"
+                };
+            }
+            
+            if (name === "redireccionarSitioWeb") {
+                return {
+                    dominio_falso: "https://gymflow.com",
+                    landing_local: "G:\\Mi unidad\\MULTI D\\ProfesIA\\proyectos personales\\landyn page sistema para gym\\index.html",
+                    success: true
+                };
+            }
+            
+            return { error: "Acción comercial no mapeada en el sistema local" };
+        }
+
+        // --- DIBUJAR TARJETA INTERACTIVA EN EL DOM ---
+        function dibujarTarjetaEnChat(name, args, result) {
+            const card = document.createElement('div');
+            card.classList.add('interactive-card');
+            
+            let cardContent = "";
+            
+            if (name === "mostrarEsquemaComercial") {
+                const tema = args.tema || "proposito";
+                if (tema === "proposito") {
+                    cardContent = `
+                        <div class="card-header">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                            <span>Arquitectura Multitenant - GYMFLOW</span>
+                        </div>
+                        <div style="margin-top: 10px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.25);">
+                            <img src="${result.imagen}" alt="Arquitectura Multitenant" style="width: 100%; display: block; object-fit: cover;">
+                        </div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px; line-height: 1.35; text-align: center;">
+                            🔒 Aislamiento absoluto por Código de Sucursal para resguardar la confidencialidad de tus sedes.
+                        </div>
+                    `;
+                } else if (tema === "beneficios") {
+                    cardContent = `
+                        <div class="card-header">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                            <span>Impacto de GYMFLOW en tu Negocio</span>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;">
+                            <div style="padding: 10px; background: rgba(34, 197, 94, 0.05); border-radius: 6px; border: 1px solid rgba(34, 197, 94, 0.15); text-align: center;">
+                                <div style="font-size: 1.2rem; font-weight: bold; color: #4ade80;">&lt; 3s</div>
+                                <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">Cobro Exprés</div>
+                            </div>
+                            <div style="padding: 10px; background: rgba(59, 130, 246, 0.05); border-radius: 6px; border: 1px solid rgba(59, 130, 246, 0.15); text-align: center;">
+                                <div style="font-size: 1.2rem; font-weight: bold; color: #60a5fa;">100%</div>
+                                <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">Caja Cuadrada (MP)</div>
+                            </div>
+                            <div style="padding: 10px; background: rgba(239, 68, 68, 0.05); border-radius: 6px; border: 1px solid rgba(239, 68, 68, 0.15); text-align: center;">
+                                <div style="font-size: 1.2rem; font-weight: bold; color: #f87171;">0%</div>
+                                <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">Membresías Vencidas</div>
+                            </div>
+                            <div style="padding: 10px; background: rgba(245, 158, 11, 0.05); border-radius: 6px; border: 1px solid rgba(245, 158, 11, 0.15); text-align: center;">
+                                <div style="font-size: 1.2rem; font-weight: bold; color: #fbbf24;">Auto</div>
+                                <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">WhatsApp de Retención</div>
+                            </div>
+                        </div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px; text-align: center; line-height: 1.3;">
+                            Automatiza procesos, reduce costos administrativos y optimiza la retención de socios.
+                        </div>
+                    `;
+                } else if (tema === "dolores") {
+                    cardContent = `
+                        <div class="card-header">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                            <span>Matriz de Dolores y Soluciones</span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px; font-size: 0.8rem; line-height: 1.35;">
+                            <div style="border-left: 3px solid #ef4444; padding-left: 8px;">
+                                <span style="color: #f87171; font-weight: bold;">Dolor:</span> Pérdida por cuotas vencidas.<br>
+                                <span style="color: #4ade80; font-weight: bold;">Solución:</span> Bloqueo automático de reservas a morosos.
+                            </div>
+                            <div style="border-left: 3px solid #ef4444; padding-left: 8px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 4px;">
+                                <span style="color: #f87171; font-weight: bold;">Dolor:</span> Conciliación e ingresos desordenados.<br>
+                                <span style="color: #4ade80; font-weight: bold;">Solución:</span> Cobro Rápido en 1 Clic e integración Mercado Pago.
+                            </div>
+                            <div style="border-left: 3px solid #ef4444; padding-left: 8px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 4px;">
+                                <span style="color: #f87171; font-weight: bold;">Dolor:</span> Abandono silencioso de socios.<br>
+                                <span style="color: #4ade80; font-weight: bold;">Solución:</span> Alertas de WhatsApp automáticas a los 10 días de inactividad.
+                            </div>
+                        </div>
+                    `;
+                } else if (tema === "bicicletas") {
+                    cardContent = `
+                        <div class="card-header">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                            <span>Alcance del Inventario de Máquinas</span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px; font-size: 0.8rem; padding: 10px; background: rgba(239, 68, 68, 0.05); border-radius: 6px; border: 1px solid rgba(239, 68, 68, 0.15); line-height: 1.4;">
+                            <div style="display: flex; align-items: flex-start; gap: 6px;">
+                                <span style="color: #ef4444;">❌</span>
+                                <span><strong>NO VENDEMOS BICICLETAS:</strong> GYMFLOW es una plataforma digital de gestión (software), no comercializamos equipamiento físico ni bicicletas.</span>
+                            </div>
+                            <div style="display: flex; align-items: flex-start; gap: 6px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 6px;">
+                                <span style="color: #22c55e;">✅</span>
+                                <span><strong>GESTIONAMOS TU INVENTARIO:</strong> Administramos tu parque de máquinas (bicicletas estáticas, caminadoras) para restringir la creación de rutinas según disponibilidad real.</span>
+                            </div>
+                        </div>
+                    `;
+                } else if (tema === "whatsapp") {
+                    cardContent = `
+                        <div class="card-header">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                            <span>Retención Activa - WhatsApp</span>
+                        </div>
+                        <div style="margin-top: 10px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.25);">
+                            <img src="${result.imagen}" alt="Secuencia de Retención WhatsApp" style="width: 100%; display: block; object-fit: cover;">
+                        </div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px; line-height: 1.35; text-align: center;">
+                            📲 Alertas automáticas enviadas a socios inactivos con más de 10 días sin asistencia para asegurar su retorno.
+                        </div>
+                    `;
+                } else if (tema === "rutinas") {
+                    cardContent = `
+                        <div class="card-header">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                            <span>Diseño y Seguimiento de Rutinas</span>
+                        </div>
+                        <div style="margin-top: 10px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.25);">
+                            <img src="${result.imagen}" alt="Diseño y Seguimiento de Rutinas" style="width: 100%; display: block; object-fit: cover;">
+                        </div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px; line-height: 1.35; text-align: center;">
+                            💪 Planificación inteligente de entrenamientos biomecánicos y seguimiento del avance del alumno en la App Mobile.
+                        </div>
+                    `;
+                } else if (tema === "clases") {
+                    cardContent = `
+                        <div class="card-header">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            <span>Programación de Clases Grupales</span>
+                        </div>
+                        <div style="margin-top: 10px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.25);">
+                            <img src="${result.imagen}" alt="Programación de Clases Grupales" style="width: 100%; display: block; object-fit: cover;">
+                        </div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px; line-height: 1.35; text-align: center;">
+                            📅 Organización de clases en base a objetivos, control de asistencia en recepción y reservas en 1 clic.
+                        </div>
+                    `;
+                } else if (tema === "pagos") {
+                    cardContent = `
+                        <div class="card-header">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                            <span>Automatización de Pagos y Caja</span>
+                        </div>
+                        <div style="margin-top: 10px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.25);">
+                            <img src="${result.imagen}" alt="Automatización de Pagos" style="width: 100%; display: block; object-fit: cover;">
+                        </div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px; line-height: 1.35; text-align: center;">
+                            💸 Registro automático de pagos de mostrador y conciliación de Mercado Pago digital mediante webhooks.
+                        </div>
+                    `;
+                } else if (tema === "contabilidad") {
+                    cardContent = `
+                        <div class="card-header">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                            <span>Inteligencia Contable y Predictiva</span>
+                        </div>
+                        <div style="margin-top: 10px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.25);">
+                            <img src="${result.imagen}" alt="Inteligencia Contable" style="width: 100%; display: block; object-fit: cover;">
+                        </div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px; line-height: 1.35; text-align: center;">
+                            📊 Automatización contable de ingresos/egresos con análisis predictivo para planeación y metas de expansión.
+                        </div>
+                    `;
+                }
+            }
+            
+            else if (name === "agendarDemostracionEnVivo") {
+                cardContent = `
+                    <div class="card-header">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                        <span>Demostración Agendada - GYMFLOW</span>
+                    </div>
+                    <div class="card-field">Prospecto: <strong>${result.nombre_prospecto}</strong></div>
+                    <div class="card-field">Horario: <strong>${result.fecha_reunion}</strong></div>
+                    <div class="card-field">Consultor: <strong>${result.consultor}</strong></div>
+                    <div class="card-field">Estado: <span class="card-badge badge-success">${result.estado}</span></div>
+                    <div class="card-field" style="margin-top: 10px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 8px;">
+                        Enlace de Reunión:<br>
+                        <a href="${result.meet_link}" target="_blank" style="color: var(--primary-accent); word-break: break-all; font-size: 0.85rem; font-weight: bold; text-decoration: underline;">
+                            ${result.meet_link}
+                        </a>
+                    </div>
+                    <div class="card-field" style="font-family: monospace; font-size: 0.75rem; text-align: center; color: var(--text-muted); margin-top: 5px;">
+                        ID de Reunión: ${result.ticket_reunion}
+                    </div>
+                `;
+            }
+            
+            else if (name === "calcularCotizacionPlan") {
+                cardContent = `
+                    <div class="card-header">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                        <span>Cotización Comercial - GYMFLOW</span>
+                    </div>
+                    <div class="card-field">Plan Sugerido: <strong style="color: var(--primary-accent);">${result.plan_nombre}</strong></div>
+                    <div class="card-field">Socio Máximo: <strong>${result.alumnos_limite}</strong></div>
+                    <div class="card-field">Sucursales: <strong>${result.sucursales_cantidad}</strong></div>
+                    <div class="card-field">WhatsApp Integrado: <strong>${result.whatsapp_incluido}</strong></div>
+                    <div class="card-field" style="margin-top: 10px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 8px;">
+                        Costo Mensual: <strong style="color: #22c55e; font-size: 1.2rem;">$${result.precio_mensual.toLocaleString('es-AR')} ARS</strong>
+                    </div>
+                    <div class="card-field" style="color: var(--text-muted); font-size: 0.75rem; font-style: italic;">
+                        * Ahorro de $${result.ahorro_anual_pago.toLocaleString('es-AR')} ARS con el pago anual.
+                    </div>
+                `;
+            }
+            
+            else if (name === "enviarFichaTecnicaSaaS") {
+                cardContent = `
+                    <div class="card-header">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                        <span>Dossier Comercial - GYMFLOW</span>
+                    </div>
+                    <div class="card-field">Archivo: <strong>${result.archivo_nombre}</strong></div>
+                    <div class="card-field">Destinatario: <strong>${result.destinatario}</strong></div>
+                    <div class="card-field">Tamaño: <strong>${result.peso_archivo}</strong></div>
+                    <div class="card-field">Estado Envío: <span class="card-badge badge-success">Enviado por Email</span></div>
+                    <a href="${result.download_link}" class="card-button" target="_blank">
+                        Descargar Ficha Técnica PDF
+                    </a>
+                `;
+            }
+            
+            else if (name === "redireccionarSitioWeb") {
+                cardContent = `
+                    <div class="card-header">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                        <span>Sitio Web - GYMFLOW</span>
+                    </div>
+                    <div style="font-size: 0.85rem; color: var(--text-main); margin-top: 8px;">
+                        🌐 Redireccionando a <strong>https://gymflow.com</strong>...
+                    </div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 5px; line-height: 1.35;">
+                        Se ha abierto una nueva pestaña con la landing page de presentación del sistema.
+                    </div>
+                    <a href="file:///G:/Mi unidad/MULTI%20D/ProfesIA/proyectos%20personales/landyn%20page%20sistema%20para%20gym/index.html" class="card-button" target="_blank" style="margin-top: 12px; text-decoration: none; display: block; text-align: center; font-weight: bold;">
+                        Abrir Landing Page
+                    </a>
+                `;
+            }
+            
+            card.innerHTML = cardContent;
+            chatMessages.appendChild(card);
+            scrollToBottom();
+        }
+
+        // --- 3. CONEXIÓN API DE GROQ (COMPATIBLE CON OPENAI) ---
+        async function callGroqAPI(promptText) {
+            const targetUrl = "/api/chat";
+
+            // Sanitizar IDs de llamadas a funciones en el historial antes de mapear
+            let currentCallId = null;
+            chatHistory.forEach((msg, idx) => {
+                if (msg.isFunctionCall) {
+                    if (!msg.toolCallId) {
+                        msg.toolCallId = "call_fallback_" + idx;
+                    }
+                    currentCallId = msg.toolCallId;
+                } else if (msg.isFunctionResponse) {
+                    if (!msg.toolCallId) {
+                        msg.toolCallId = currentCallId || ("call_fallback_" + (idx - 1));
+                    }
+                    currentCallId = null;
+                }
+            });
+
+            // Instrucción de sistema para el agente Fito
+            const systemInstruction = `Te llamas 'Fito'. Eres el representante comercial, embajador de marca y vocero oficial de la plataforma SaaS 'GYMFLOW' (un sistema operativo de gestión multitenant para gimnasios en Córdoba, Argentina).
+
+Tu objetivo principal es promocionar, explicar y evacuar dudas sobre qué es GYMFLOW, y realizar demostraciones operativas en vivo de sus capacidades (como consultas de caja, estados de cuenta, aforos e inventarios).
+
+REGLAS DE RESOLUCIÓN DE HERRAMIENTAS (FUNCTION CALLING):
+- 'mostrarEsquemaComercial': Invoca esta herramienta si el usuario te solicita de manera explícita ver el gráfico o esquema visual, o si te pregunta directamente acerca de comprar, vender, cotizar o saber el precio de equipamiento físico (bicicletas, mancuernas, cintas de correr, etc.), en cuyo caso debes pasar el tema 'bicicletas' para aclararle que no vendemos equipamiento físico sino que gestionamos inventario biomecánico. Los temas válidos son 'proposito', 'beneficios', 'dolores', 'bicicletas', 'whatsapp', 'rutinas', 'clases', 'pagos' and 'contabilidad'. Para dudas teóricas de texto generales sin solicitar diagramas, responde puramente en texto.
+- 'calcularCotizacionPlan': Invoca esta herramienta ÚNICAMENTE si el usuario te solicita de forma explícita cotizar, calcular el costo, tarifa o presupuesto del abono mensual de la plataforma SaaS o del sistema GYMFLOW para su gimnasio. Queda terminantemente PROHIBIDO invocar esta herramienta ante consultas sobre precios o compras de equipamiento deportivo físico (como bicicletas o pesas). Conoce las condiciones del cálculo:
+  * Si cantidad_alumnos < 150 y cantidad_sucursales < 2: se asigna el 'Plan Fit Starter (Base)' con costo base of $15,000 ARS.
+  * Si cantidad_alumnos >= 150 o cantidad_sucursales >= 2: se escala al 'Plan Fit Pro (Escalado)' con costo base of $28,000 ARS.
+  * Recargos: +$12,000 ARS por cada sucursal adicional si cantidad_sucursales >= 2 (si no, +$8,000 ARS por sede adicional). +$3,000 ARS si incluye WhatsApp.
+- 'agendarDemostracionEnVivo': Invoca esta herramienta si el usuario te solicita explícitamente agendar o reservar una demo o reunión.
+- 'enviarFichaTecnicaSaaS': Invoca esta herramienta si el usuario te solicita de forma explícita descargar o recibir la ficha técnica o dossier PDF.
+- 'redireccionarSitioWeb': Invoca esta herramienta si el usuario te pregunta por la existencia de la página web de GYMFLOW, te solicita un enlace/link o quiere ir al sitio oficial o landing page comercial. Queda terminantemente PROHIBIDO responder de forma puramente textual diciendo que 'no tienes permitido compartir enlaces'; debes ejecutar siempre esta herramienta para abrir el sitio.
+
+REGLAS DE CONTEXTO Y PREGUNTAS ILÓGICAS:
+- Eres exclusivamente el asesor comercial de GYMFLOW. Si el usuario te realiza preguntas totalmente ajenas o ilógicas al contexto de GYMFLOW o la gestión de gimnasios (por ejemplo, recetas de cocina, el clima, política, fútbol, etc.), debes responder de forma prudente, educada e informativa indicándole que eres Fito, el asistente comercial de GYMFLOW, y que solo puedes atender dudas o realizar demostraciones relacionadas con el sistema. Invítalo amablemente a regresar al tema.
+
+REGLAS PARA SALUDOS Y FRASES CORTAS (DIÁLOGO NATURAL Y GRADUAL):
+- Ante un saludo inicial (ej. "hola", "buen día", "hola fito", "buenas"): Responde siempre de forma muy cálida, empática, natural y conversacional (ej. "¡Hola! Muy buen día. Un gusto saludarte. ¿Cómo se llama tu gimnasio y cómo lo vienen gestionando hoy en día? 🏋️"). Queda terminantemente PROHIBIDO intentar vender, cotizar o listar diagramas de inmediato en este primer contacto; deja que el cliente se presente y entabla una conversación humana primero.
+- Ante frases cortas o ambiguas en medio del chat (ej. "ok", "sí", "bueno", "contame", "qué más", "dale"): No respondas con evasivas. Responde de forma cordial y breve, y haz una pregunta sutil ofreciendo solo una o dos opciones de exploración para no abrumar (ej. "¡Buenísimo! ¿Te gustaría que veamos el esquema gráfico de cómo automatizamos la retención de socios por WhatsApp, o preferís que calculemos una cotización mensual para tu sede? 🚀"). Esto los guiará de manera progresiva y natural.
+
+REGLAS DE CIERRE DE MENSAJES (VARIACIÓN NO INVASIVA):
+- Queda terminantemente PROHIBIDO repetir la misma frase cansadora o robótica de cierre invitando siempre a probar el sistema en vivo o agendar una demo (ej. "Te gustaría agendar una demostración en vivo..." o "¿Querés probar cómo funciona el sistema en vivo?").
+- Esta invitación solo debe realizarse cuando la conversación ya esté madura y encaminada, demostrando una aceptación o interés parcial/explícito del prospecto (ej. al preguntar por precios, pedir demostración o mostrar intención de compra).
+- En turnos de preguntas iniciales, informativas o técnicas generales, cierra de forma directa sin añadir invitaciones comerciales, o haz una pregunta abierta no invasiva sobre la gestión diaria de su negocio (ej. "¿Cómo manejan el control de morosidad actualmente?").
+
+Tu tono es profesional, cordial, persuasivo y sumamente servicial. Debes moderar el nivel de confianza: evita por completo el uso de jerga informal o modismos excesivamente coloquiales (no utilices palabras como 'che', 'crack' o 'qué hacés'). Tu comunicación debe ser respetuosa, clara y pulida, adaptada a un entorno B2B formal, pero sin resultar fría o distante. Mantén el entusiasmo corporativo por la plataforma incorporando emojis de fitness y crecimiento (🚀, 📈, 💪, 🏋️) de forma natural y moderada.
+
+CONTRACCIÓN Y BREVEDAD OBLIGATORIA:
+- A las personas no les gusta leer mucho. Por lo tanto, tus respuestas deben ser simples, potentes, aclaratorias y muy breves (idealmente entre 2 y 4 líneas como máximo, o utilizando viñetas cortas). Evita explicaciones largas u operativas a menos que el usuario te lo pida explícitamente. Ve al grano con impacto.
+
+Debes responder preguntas posicionándote siempre como el representante del software GYMFLOW, basándote en la siguiente información del sistema:
+1. Propósito de la Plataforma: Optimizar la gestión operativa, el control de caja y la fidelización en gimnasios mediante una arquitectura multitenant aislada por 'Código de Sucursal' (tenant_id).
+2. Dolencias operativas que resuelve tu software:
+   - Fricción de Registro Inicial: Importador inteligente de planillas (Excel, CSV, PDF) con coincidencia automática de columnas.
+   - Fricción de Caja: Cobro rápido en 1 clic en mostrador (efectivo/transferencia presencial) en <3s y conciliación digital automática de Mercado Pago (ARS) mediante webhooks.
+   - Morosidad y Aforo: Bloqueo automático de reservas si la cuota del socio está vencida o si el salón alcanzó su límite de capacidad física.
+   - Banco Biomecánico e Inventario: Las rutinas creadas se restringen automáticamente al parque de máquinas real que tiene cargado la sede (evitando ejercicios inviables para el alumno).
+   - Abandono: Alertas automáticas de WhatsApp para socios inactivos con más de 10 días sin asistir.
+3. Ecosistema de Rutinas (Tripartito FitTech):
+   - App Alumno Mobile-First: Auto-fill de cargas, timer de descanso con vibración y checks de series 1-tap.
+   - Panel Instructor: Workout Generator en 3 clics por enfoque (cardio/fuerza) y cronómetros (EMOM, AMRAP, Tabata).
+   - Adaptive Workout Engine: Reconfiguración automática de rutinas 5 minutos antes de la clase cruzando asistentes, lesiones y máquinas disponibles.
+4. Arquitectura y Stack Tecnológico (Para dudas técnicas):
+   - Frontend: Desarrollado en React y Tailwind CSS, estructurado bajo componentes modulares optimizados para interfaces mobile-first de alto rendimiento.
+   - Backend: Construido en Node.js utilizando Prisma ORM con base de datos SQLite para un despliegue local ágil y seguro.
+   - Privacidad por Diseño: Aislamiento estricto de base de datos multitenant por Código de Sucursal (tenant_id) libre de filtraciones, protegiendo la confidencialidad absoluta de cada sede.
+
+Reglas de comportamiento y lenguaje:
+- Posicionamiento comercial: Presenta las ventajas de GYMFLOW con entusiasmo profesional de forma directa.
+- Confidencialidad del Administrador: Las herramientas de "Super Admin", "Gobierno Global" o entornos "model-sandbox" son de uso exclusivo del desarrollador y control interno. NUNCA las menciones ni las saques a relucir en tus conversaciones comerciales con prospectos.
+- Simulación secundaria: Si por el contrario el usuario te pide un ejemplo de cómo asistirías a un alumno o a un recepcionista dentro de la app, haz una simulación demostrativa corta de ese rol secundario (como coach virtual o asistente de mostrador) para que vean el potencial del software en acción.`;
+
+            // Mapeamos el historial soportando texto, llamadas de función y respuestas de función
+            const messages = [
+                { role: "system", content: systemInstruction }
+            ];
+
+            // Tomamos los últimos 15 mensajes para no saturar el contexto
+            const recentHistory = chatHistory.slice(-15);
+            recentHistory.forEach(msg => {
+                if (msg.isFunctionCall) {
+                    let toolCalls = [];
+                    if (msg.toolCalls) {
+                        toolCalls = msg.toolCalls;
+                    } else {
+                        // Fallback para estructurar llamadas antiguas
+                        let name = "";
+                        let args = {};
+                        if (msg.parts && msg.parts[0]?.functionCall) {
+                            name = msg.parts[0].functionCall.name;
+                            args = msg.parts[0].functionCall.args;
+                        }
+                        if (name) {
+                            toolCalls.push({
+                                id: msg.toolCallId || ("call_" + Math.random().toString(36).substr(2, 9)),
+                                type: "function",
+                                function: {
+                                    name: name,
+                                    arguments: JSON.stringify(args)
+                                }
+                            });
+                        }
+                    }
+                    messages.push({
+                        role: "assistant",
+                        content: null,
+                        tool_calls: toolCalls
+                    });
+                    return;
+                }
+                
+                if (msg.isFunctionResponse) {
+                    messages.push({
+                        role: "tool",
+                        tool_call_id: msg.toolCallId || ("call_" + Math.random().toString(36).substr(2, 9)),
+                        name: msg.name,
+                        content: typeof msg.text === 'string' ? msg.text : JSON.stringify(msg.response)
+                    });
+                    return;
+                }
+
+                messages.push({
+                    role: msg.sender === 'user' ? 'user' : 'assistant',
+                    content: msg.text
+                });
+            });
+
+            // Declaración de Tools en formato OpenAI / Groq
+            const groqTools = [
+                {
+                    type: "function",
+                    function: {
+                        name: "mostrarEsquemaComercial",
+                        description: "Muestra el esquema gráfico, diagrama o matriz interactiva correspondiente al tema consultado para apoyar visualmente la explicación comercial.",
+                        parameters: {
+                            type: "object",
+                            properties: {
+                                tema: {
+                                    type: "string",
+                                    description: "El tema del esquema a mostrar: 'proposito', 'beneficios', 'dolores', 'bicicletas', 'whatsapp', 'rutinas', 'clases', 'pagos' o 'contabilidad'.",
+                                    enum: ["proposito", "beneficios", "dolores", "bicicletas", "whatsapp", "rutinas", "clases", "pagos", "contabilidad"]
+                                }
+                            },
+                            required: ["tema"]
+                        }
+                    }
+                },
+                {
+                    type: "function",
+                    function: {
+                        name: "agendarDemostracionEnVivo",
+                        description: "Registra la reserva de una demostración en vivo de la plataforma GYMFLOW (a través de Google Meet) para el prospecto.",
+                        parameters: {
+                            type: "object",
+                            properties: {
+                                nombre_contacto: {
+                                    type: "string",
+                                    description: "El nombre de pila o completo de la persona interesada."
+                                },
+                                email: {
+                                    type: "string",
+                                    description: "La dirección de correo electrónico del contacto."
+                                },
+                                dia_horario: {
+                                    type: "string",
+                                    description: "La propuesta de fecha y hora para la demo (ej. 'Mañana a las 10:00 hs', 'Lunes 15 hs')."
+                                }
+                            },
+                            required: ["nombre_contacto", "email", "dia_horario"]
+                        }
+                    }
+                },
+                {
+                    type: "function",
+                    function: {
+                        name: "calcularCotizacionPlan",
+                        description: "Calcula el costo mensual estimado del plan SaaS de GYMFLOW cruzando la cantidad de alumnos, sucursales y módulo de WhatsApp.",
+                        parameters: {
+                            type: "object",
+                            properties: {
+                                cantidad_alumnos: {
+                                    type: "integer",
+                                    description: "La cantidad total aproximada de socios activos que tiene el gimnasio."
+                                },
+                                cantidad_sucursales: {
+                                    type: "integer",
+                                    description: "El número de sedes físicas a integrar (por defecto es 1)."
+                                },
+                                incluye_whatsapp: {
+                                    type: "boolean",
+                                    description: "Si desea incluir el módulo de fidelización y alertas automatizadas de WhatsApp (por defecto es true)."
+                                }
+                            },
+                            required: ["cantidad_alumnos"]
+                        }
+                    }
+                },
+                {
+                    type: "function",
+                    function: {
+                        name: "enviarFichaTecnicaSaaS",
+                        description: "Envía un archivo PDF técnico e instructivo comercial del módulo solicitado a la casilla de email provista.",
+                        parameters: {
+                            type: "object",
+                            properties: {
+                                email: {
+                                    type: "string",
+                                    description: "El correo electrónico a donde se enviará el archivo."
+                                },
+                                modulo_interes: {
+                                    type: "string",
+                                    description: "El módulo técnico de interés del gimnasio (ej. 'Finanzas', 'Rutinas Biomecánicas', 'WhatsApp')."
+                                }
+                            },
+                            required: ["email", "modulo_interes"]
+                        }
+                    }
+                },
+                {
+                    type: "function",
+                    function: {
+                        name: "redireccionarSitioWeb",
+                        description: "Redirecciona al usuario al sitio web o landing page oficial de GYMFLOW para conocer más detalles del producto.",
+                        parameters: {
+                            type: "object",
+                            properties: {},
+                            required: []
+                        }
+                    }
+                }
+            ];
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 25000); // 25 segundos
+
+            try {
+                let response;
+                try {
+                    response = await fetch(targetUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    signal: controller.signal,
+                    body: JSON.stringify({
+                        model: "llama-3.3-70b-versatile",
+                        messages: messages,
+                        tools: groqTools,
+                        tool_choice: "auto"
+                    })
+                });
+            } catch (err) {
+                console.error("[GYMFLOW] Error en petición a /api/chat:", err);
+                throw new Error("No se pudo conectar con el servidor del asistente. Por favor, reintenta en unos instantes.");
+            }
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                let errMsg = `Error en la petición a Groq API (Código ${response.status})`;
+                try {
+                    const errorData = await response.json();
+                    if (errorData?.error?.message) {
+                        errMsg = errorData.error.message;
+                    }
+                } catch (e) {
+                    // Ignorar fallas al parsear JSON
+                }
+                throw new Error(errMsg);
+            }
+
+            const data = await response.json();
+                const responseMessage = data.choices[0]?.message || {};
+                
+                // --- DETECCION DE LLAMADA A FUNCIÓN (FUNCTION CALLING) ---
+                if (responseMessage.tool_calls && responseMessage.tool_calls.length > 0) {
+                    const toolCall = responseMessage.tool_calls[0];
+                    const { id: toolCallId, function: fn } = toolCall;
+                    const { name, arguments: argsString } = fn;
+                    const args = JSON.parse(argsString || "{}");
+                    const cleanName = name.replace(/^.*:/, ""); // Limpiar prefijo namespace (ej. default_api:)
+
+                    // 1. Ejecutar localmente la función mock
+                    const result = await ejecutarFuncionLocal(cleanName, args);
+
+                    // 2. Renderizar la tarjeta interactiva en el chat
+                    dibujarTarjetaEnChat(cleanName, args, result);
+
+                    // 3. Añadir la llamada y la respuesta al historial virtual de chatHistory
+                    chatHistory.push({
+                        sender: 'ai',
+                        text: `[Llamada a función: ${name}]`,
+                        isFunctionCall: true,
+                        toolCallId: toolCallId,
+                        toolCalls: responseMessage.tool_calls
+                    });
+
+                    chatHistory.push({
+                        sender: 'function',
+                        name: name,
+                        cleanName: cleanName,
+                        text: JSON.stringify(result),
+                        isFunctionResponse: true,
+                        toolCallId: toolCallId,
+                        response: result
+                    });
+                    
+                    saveChatHistory();
+
+                    // 4. Volver a llamar recursivamente a la API de Groq para obtener la respuesta final basada en el resultado
+                    try {
+                        return await callGroqAPI(promptText);
+                    } catch (err) {
+                        console.warn("[GYMFLOW] Falló el segundo turno de Groq por límite de tráfico. Usando respuesta comercial de contingencia:", err);
+                        
+                        // Respuestas de contingencia amigables y profesionales según la función comercial ejecutada
+                        if (cleanName === "mostrarEsquemaComercial") {
+                            const tema = args.tema || "proposito";
+                            if (tema === "proposito") {
+                                return "¡Hola! Bienvenidos a **GYMFLOW**. Como se puede observar en el esquema de operación multitenant superior, nuestra plataforma es un sistema operativo de gestión integral para gimnasios que optimiza la administración diaria, el control de caja y la fidelización de sus socios. ¿Le gustaría coordinar una demostración en vivo? 🚀";
+                            }
+                            if (tema === "beneficios") {
+                                return "Como dueño de gimnasio, **GYMFLOW** impulsará su negocio y simplificará su día a día en tres áreas clave reflejadas en el esquema de automatización y cobros anterior: cobro rápido, bloqueo de morosos y alertas de inasistencia por WhatsApp. 📈";
+                            }
+                            if (tema === "dolores") {
+                                return "Atacamos puntualmente los dolores operativos de su gimnasio detallados en el gráfico de unificación de caja superior (registro lento, descontrol de caja, morosidad y abandono). ¿Le gustaría probarlo gratis hoy mismo? 🏋️";
+                            }
+                            if (tema === "bicicletas") {
+                                return "Hola. Tal como se detalla en el gráfico de alcance del Inventario biomecánico superior, **GYMFLOW** es un software de gestión digital y no comercializamos bicicletas ni equipamiento físico. Nuestra especialidad es ayudarle a administrar sus activos de fitness actuales para optimizar rutinas. 🚲";
+                            }
+                        }
+                        if (cleanName === "calcularCotizacionPlan") {
+                            return "He calculado los detalles de tu cotización y los tienes disponibles en la tarjeta anterior. 📈\n\n¿Te gustaría que agendemos una demostración en vivo de 15 minutos para ver cómo GYMFLOW se adapta a tus sedes?";
+                        }
+                        if (cleanName === "agendarDemostracionEnVivo") {
+                            return "¡Perfecto! Ya tienes agendada la demostración en vivo de GYMFLOW. He generado el enlace de Google Meet en la tarjeta de arriba. 🚀\n\nTe enviaremos un recordatorio por correo electrónico.";
+                        }
+                        if (cleanName === "enviarFichaTecnicaSaaS") {
+                            return "He preparado el dossier técnico comercial solicitado. Puedes presionar el botón de descarga en la tarjeta anterior para acceder al PDF de inmediato. 📄";
+                        }
+                        
+                        return "He procesado tu solicitud comercial con éxito. Puedes ver los detalles en la tarjeta interactiva de arriba. ¿En qué más puedo ayudarte hoy?";
+                    }
+                }
+
+                if (responseMessage.content) {
+                    return responseMessage.content;
+                } else {
+                    throw new Error('Formato de respuesta inesperado de Groq API');
+                }
+            } catch (error) {
+                clearTimeout(timeoutId);
+                if (error.name === 'AbortError') {
+                    throw new Error('El servidor de la IA está demorando demasiado en responder debido a congestión de red. Por favor, reintente en unos instantes.');
+                }
+                throw error;
+            }
+        }
+
+        // Cargar historial de chat persistente al iniciar la aplicación
+        loadChatHistory();
+
+        // --- 4. PARSER DE MARKDOWN SIMPLE ---
+        // Esta función convierte formato markdown simple (*negrita*, **negrita**, - lista, saltos de línea)
+        // a HTML válido para que las respuestas del bot no se vean en texto plano y tosco.
+        function parseMarkdown(markdownText) {
+            let html = markdownText;
+
+            // Escapar HTML básico del texto original para evitar inyecciones XSS si vinieran del modelo
+            html = html
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+
+            // Convertir negritas (**texto** o *texto*)
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            html = html.replace(/\*(.*?)\*/g, '<strong>$1</strong>');
+
+            // Convertir líneas que empiezan con "-" o "*" en elementos de lista <li>
+            // Agrupándolos después en <ul>
+            const lines = html.split('\n');
+            let inList = false;
+            let formattedLines = [];
+
+            for (let line of lines) {
+                const trimmed = line.trim();
+                if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+                    if (!inList) {
+                        formattedLines.push('<ul>');
+                        inList = true;
+                    }
+                    const itemContent = trimmed.substring(2);
+                    formattedLines.push(`<li>${itemContent}</li>`);
+                } else {
+                    if (inList) {
+                        formattedLines.push('</ul>');
+                        inList = false;
+                    }
+                    if (trimmed !== '') {
+                        formattedLines.push(`<p>${line}</p>`);
+                    } else {
+                        formattedLines.push('');
+                    }
+                }
+            }
+            if (inList) {
+                formattedLines.push('</ul>');
+            }
+
+            return formattedLines.join('\n');
+        }
+    </script>
+
+    <!-- Lightbox Modal para Ampliar Imágenes -->
+    <div id="imageLightbox" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); z-index: 10000; align-items: center; justify-content: center; cursor: zoom-out;">
+        <span style="position: absolute; top: 20px; right: 30px; font-size: 35px; font-weight: bold; color: #fff; cursor: pointer; user-select: none;">&times;</span>
+        <img id="lightboxImg" src="" alt="Imagen Ampliada" style="max-width: 90%; max-height: 90%; border-radius: 8px; box-shadow: 0 10px 35px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.15); cursor: default; transform: scale(0.95); transition: transform 0.15s ease-in-out;">
+    </div>
+
+    <script>
+        // Manejador del Lightbox para ampliar imágenes de las tarjetas del chat
+        document.addEventListener('click', (e) => {
+            if (e.target && e.target.tagName === 'IMG' && e.target.closest('.interactive-card')) {
+                const lightbox = document.getElementById('imageLightbox');
+                const lightboxImg = document.getElementById('lightboxImg');
+                if (lightbox && lightboxImg) {
+                    lightboxImg.src = e.target.src;
+                    lightbox.style.display = 'flex';
+                    // Animación de entrada suave
+                    setTimeout(() => {
+                        lightboxImg.style.transform = 'scale(1)';
+                    }, 50);
+                }
+            }
+        });
+
+        const lightbox = document.getElementById('imageLightbox');
+        if (lightbox) {
+            lightbox.addEventListener('click', (e) => {
+                if (e.target.id === 'imageLightbox' || e.target.tagName === 'SPAN') {
+                    const lightboxImg = document.getElementById('lightboxImg');
+                    if (lightboxImg) lightboxImg.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        lightbox.style.display = 'none';
+                    }, 150);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

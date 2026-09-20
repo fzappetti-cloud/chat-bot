@@ -1,0 +1,8 @@
+{
+  "name": "gymflow-chatbot",
+  "version": "1.0.0",
+  "description": "Demo de chatbot GymFlow AI (Fito) con proxy seguro a Groq",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" }
+}
