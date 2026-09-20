@@ -1,7 +1,7 @@
 // Intermediario seguro hacia Groq para Cloudflare Workers.
 // La clave vive como secreto GROQ_API_KEY en Cloudflare (nunca en el HTML).
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const MODEL = 'llama-3.3-70b-versatile';
+const MODEL = 'openai/gpt-oss-120b';
 const MAX_BODY_CHARS = 512 * 1024;
 const MAX_MESSAGES = 60;
 
