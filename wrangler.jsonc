@@ -1,0 +1,9 @@
+{
+  "name": "chat-bot-gym-flow",
+  "main": "worker.js",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS"
+  }
+}
